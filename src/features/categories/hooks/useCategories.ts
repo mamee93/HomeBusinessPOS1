@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { useFocusEffect } from "expo-router";
 
 import { Category } from "../../../types/category";
 import { CategoryFormData } from "../types";
@@ -17,31 +18,42 @@ export default function useCategories() {
 
       setCategories(data);
     } catch (error) {
-      console.error("Failed to load categories:", error);
+      console.error(
+        "Failed to load categories:",
+        error
+      );
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    loadCategories();
-  }, [loadCategories]);
+  useFocusEffect(
+    useCallback(() => {
+      loadCategories();
+    }, [loadCategories])
+  );
 
   const createCategory = async (
     data: CategoryFormData
   ) => {
-    await categoryService.create(data);
+    const category =
+      await categoryService.create(data);
 
     await loadCategories();
+
+    return category;
   };
 
   const updateCategory = async (
     id: string,
     data: CategoryFormData
   ) => {
-    await categoryService.update(id, data);
+    const category =
+      await categoryService.update(id, data);
 
     await loadCategories();
+
+    return category;
   };
 
   const deleteCategory = async (
@@ -54,15 +66,10 @@ export default function useCategories() {
 
   return {
     categories,
-
     loading,
-
     refresh: loadCategories,
-
     createCategory,
-
     updateCategory,
-
     deleteCategory,
   };
 }

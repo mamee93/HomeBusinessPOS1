@@ -1,11 +1,11 @@
 import { STORAGE_KEYS } from "../constants";
 import { Product } from "../types/product";
-import { getItem, setItem } from "./storage";
+import storage from "./storage";
 
 export async function getProducts(): Promise<Product[]> {
-  const products = await getItem<Product[]>(
-    STORAGE_KEYS.PRODUCTS
-  );
+ const products = await storage.get<Product[]>(
+  STORAGE_KEYS.PRODUCTS
+);
 
   return products ?? [];
 }
@@ -13,7 +13,10 @@ export async function getProducts(): Promise<Product[]> {
 export async function saveProducts(
   products: Product[]
 ): Promise<void> {
-  await setItem(STORAGE_KEYS.PRODUCTS, products);
+  await storage.set(
+  STORAGE_KEYS.PRODUCTS,
+  products
+);
 }
 
 export async function getProductById(

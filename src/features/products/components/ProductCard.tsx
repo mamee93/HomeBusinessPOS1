@@ -12,11 +12,17 @@ import {
   AppText,
 } from "../../../components/ui";
 
-import { Colors, Spacing } from "../../../theme";
+import {
+  Colors,
+  Spacing,
+} from "../../../theme";
+
 import { Product } from "../../../types/product";
 
 interface ProductCardProps {
   product: Product;
+
+  categoryName?: string;
 
   onEdit?: () => void;
 
@@ -27,6 +33,7 @@ interface ProductCardProps {
 
 export default function ProductCard({
   product,
+  categoryName = "-",
   onEdit,
   onDelete,
   onPress,
@@ -44,7 +51,10 @@ export default function ProductCard({
       : `${product.stock} ${product.unit}`;
 
   return (
-    <AppCard style={styles.card}>
+    <AppCard
+      style={styles.card}
+      onPress={onPress}
+    >
       {product.image ? (
         <Image
           source={{ uri: product.image }}
@@ -75,7 +85,14 @@ export default function ProductCard({
           variant="caption"
           color={Colors.textSecondary}
         >
-          SKU: {product.sku}
+          🏷️ {categoryName}
+        </AppText>
+
+        <AppText
+          variant="caption"
+          color={Colors.textSecondary}
+        >
+          SKU: {product.sku || "-"}
         </AppText>
 
         {!!product.barcode && (
@@ -83,7 +100,7 @@ export default function ProductCard({
             variant="caption"
             color={Colors.textSecondary}
           >
-            {product.barcode}
+            Barcode: {product.barcode}
           </AppText>
         )}
 
@@ -107,17 +124,25 @@ export default function ProductCard({
 
         <View style={styles.actions}>
           <AppButton
-            title="تعديل"
-            variant="outline"
+            title="👁 عرض"
             size="small"
+            variant="primary"
+            fullWidth={false}
+            onPress={onPress}
+          />
+
+          <AppButton
+            title="✏️ تعديل"
+            size="small"
+            variant="outline"
             fullWidth={false}
             onPress={onEdit}
           />
 
           <AppButton
-            title="حذف"
-            variant="danger"
+            title="🗑 حذف"
             size="small"
+            variant="danger"
             fullWidth={false}
             onPress={onDelete}
           />
@@ -138,6 +163,7 @@ const styles = StyleSheet.create({
   },
 
   placeholder: {
+    width: "100%",
     height: 150,
     justifyContent: "center",
     alignItems: "center",
@@ -159,6 +185,8 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
+    gap: Spacing.sm,
     marginTop: Spacing.lg,
   },
 });

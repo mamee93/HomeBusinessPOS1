@@ -4,7 +4,11 @@ import React, {
   useContext,
 } from "react";
 
-import usePOS from "../hooks/usePOS";
+ 
+
+import { usePOSContext } from "../context/POSContext";
+
+const pos = usePOSContext();
 
 type POSContextType = ReturnType<
   typeof usePOS

@@ -11,6 +11,10 @@ class POSService {
     );
 
     if (index === -1) {
+      if (product.stock <= 0) {
+        return cart;
+      }
+
       return [
         ...cart,
         {
@@ -21,12 +25,22 @@ class POSService {
       ];
     }
 
+    const cartItem = cart[index];
+
+    if (
+      cartItem.quantity >=
+      product.stock
+    ) {
+      return cart;
+    }
+
     return cart.map((item) => {
       if (item.product.id !== product.id) {
         return item;
       }
 
-      const quantity = item.quantity + 1;
+      const quantity =
+        item.quantity + 1;
 
       return {
         ...item,
@@ -53,11 +67,22 @@ class POSService {
     productId: string
   ): CartItem[] {
     return cart.map((item) => {
-      if (item.product.id !== productId) {
+      if (
+        item.product.id !==
+        productId
+      ) {
         return item;
       }
 
-      const quantity = item.quantity + 1;
+      if (
+        item.quantity >=
+        item.product.stock
+      ) {
+        return item;
+      }
+
+      const quantity =
+        item.quantity + 1;
 
       return {
         ...item,
@@ -76,7 +101,8 @@ class POSService {
     return cart
       .map((item) => {
         if (
-          item.product.id !== productId
+          item.product.id !==
+          productId
         ) {
           return item;
         }
@@ -94,7 +120,8 @@ class POSService {
         };
       })
       .filter(
-        (item) => item.quantity > 0
+        (item) =>
+          item.quantity > 0
       );
   }
 
@@ -161,6 +188,43 @@ class POSService {
       (sum, item) =>
         sum + item.quantity,
       0
+    );
+  }
+
+  canAddMore(
+    cart: CartItem[],
+    productId: string
+  ): boolean {
+    const item = cart.find(
+      (i) => i.product.id === productId
+    );
+
+    if (!item) {
+      return true;
+    }
+
+    return (
+      item.quantity <
+      item.product.stock
+    );
+  }
+
+  remainingStock(
+    cart: CartItem[],
+    productId: string
+  ): number {
+    const item = cart.find(
+      (i) => i.product.id === productId
+    );
+
+    if (!item) {
+      return 0;
+    }
+
+    return Math.max(
+      0,
+      item.product.stock -
+        item.quantity
     );
   }
 }

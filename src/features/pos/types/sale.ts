@@ -1,10 +1,7 @@
 import { CartItem } from "./cart";
-
-export type PaymentMethod =
-  | "cash"
-  | "card"
-  | "bankTransfer";
-
+import type { PaymentMethod } from "../../../types/invoice";
+ 
+ 
 export type SaleStatus =
   | "completed"
   | "refunded"

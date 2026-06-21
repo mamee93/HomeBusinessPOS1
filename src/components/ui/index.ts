@@ -14,9 +14,8 @@ export * from "./AppSearch";
 export * from "./AppText";
 export * from "./AppSection";
 export * from "./AppList";
-
-
-
+export { AppSelect } from "./AppSelect";
 export * from "./AppIcon";
 export * from "./AppPage";
 export * from "./AppFab";
+export * from "./AppSelect";

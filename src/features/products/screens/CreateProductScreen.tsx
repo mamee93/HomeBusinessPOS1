@@ -1,65 +1,70 @@
 import React from "react";
-import { useForm } from "react-hook-form";
+import { Alert } from "react-native";
 import { router } from "expo-router";
+import { useForm } from "react-hook-form";
 
 import { AppPage } from "../../../components/ui";
+
 import ProductForm from "../components/ProductForm";
+import useProducts from "../hooks/useProducts";
 
 import { ProductFormData } from "../types";
-import productService from "../services/productService";
-
-const defaultValues: ProductFormData = {
-  name: "",
-  sku: "",
-  barcode: "",
-  categoryId: "",
-  description: "",
-  costPrice: 0,
-  sellingPrice: 0,
-  stock: 0,
-  minStock: 0,
-  unit: "",
-  image: "",
-  isActive: true,
-};
 
 export default function CreateProductScreen() {
+  const { createProduct } = useProducts();
+
   const {
     control,
     handleSubmit,
-    formState: { isSubmitting },
-    reset,
   } = useForm<ProductFormData>({
-    defaultValues,
+    defaultValues: {
+      name: "",
+      sku: "",
+      barcode: "",
+      categoryId: "",
+      image: "",
+      description: "",
+      costPrice: 0,
+      sellingPrice: 0,
+      stock: 0,
+      minStock: 0,
+      unit: "قطعة",
+      isActive: true,
+    },
   });
 
-  const onSubmit = async (
-    data: ProductFormData
-  ) => {
-    try {
-      await productService.create(data);
+const onSubmit = async (data: ProductFormData) => {
+  console.log("FORM DATA:", data);
 
-      reset();
+  try {
+    await createProduct(data);
 
-      router.back();
-    } catch (error) {
-      console.error(
-        "Failed to create product:",
-        error
-      );
-    }
-  };
+    Alert.alert(
+      "نجاح",
+      "تم إنشاء المنتج بنجاح"
+    );
+
+    router.back();
+  } catch (error) {
+    console.error(error);
+
+    Alert.alert(
+      "خطأ",
+      error instanceof Error
+        ? error.message
+        : "حدث خطأ"
+    );
+  }
+};
 
   return (
     <AppPage
-      title="إضافة منتج"
-      scrollable
-    >
+  title="إضافة منتج"
+  scrollable
+>
       <ProductForm
         control={control}
-        loading={isSubmitting}
         onSubmit={handleSubmit(onSubmit)}
-        submitTitle="حفظ المنتج"
       />
     </AppPage>
   );

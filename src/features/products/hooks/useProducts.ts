@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
+import { useFocusEffect } from "expo-router";
 
 import { Product } from "../../../types/product";
 import productService from "../services/productService";
@@ -15,34 +16,54 @@ export default function useProducts() {
 
       setProducts(data);
     } catch (error) {
-      console.error("Failed to load products:", error);
+      console.error(
+        "Failed to load products:",
+        error
+      );
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    loadProducts();
-  }, [loadProducts]);
+  useFocusEffect(
+    useCallback(() => {
+      loadProducts();
+    }, [loadProducts])
+  );
 
   const createProduct = async (
-    data: Parameters<typeof productService.create>[0]
+    data: Parameters<
+      typeof productService.create
+    >[0]
   ) => {
-    await productService.create(data);
+    const product =
+      await productService.create(data);
 
     await loadProducts();
+
+    return product;
   };
 
   const updateProduct = async (
     id: string,
-    data: Parameters<typeof productService.update>[1]
+    data: Parameters<
+      typeof productService.update
+    >[1]
   ) => {
-    await productService.update(id, data);
+    const product =
+      await productService.update(
+        id,
+        data
+      );
 
     await loadProducts();
+
+    return product;
   };
 
-  const deleteProduct = async (id: string) => {
+  const deleteProduct = async (
+    id: string
+  ) => {
     await productService.delete(id);
 
     await loadProducts();
@@ -50,15 +71,10 @@ export default function useProducts() {
 
   return {
     products,
-
     loading,
-
     refresh: loadProducts,
-
     createProduct,
-
     updateProduct,
-
     deleteProduct,
   };
 }

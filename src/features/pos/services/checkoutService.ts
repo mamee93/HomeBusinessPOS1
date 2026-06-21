@@ -1,120 +1,75 @@
-import { v4 as uuid } from "uuid";
+import invoiceService from "../../invoices/services/invoiceService";
+import productService from "../../products/services/productService";
 
-import {
-  addSale,
-  generateInvoiceNumber,
-} from "../../../storage/sales";
+import { CartItem } from "../types";
 
-import {
-  getProducts,
-  saveProducts,
-} from "../../../storage/products";
+import { PaymentMethod } from "../../../types/invoice";
 
-import {
-  CheckoutRequest,
-  CheckoutResult,
-  Sale,
-} from "../types/sale";
+interface CheckoutData {
+  cart: CartItem[];
 
-export async function checkout(
-  request: CheckoutRequest
-): Promise<CheckoutResult> {
-  try {
-    const products = await getProducts();
+  customerId?: string;
 
-    // التحقق من المخزون
-    for (const item of request.items) {
-      const product = products.find(
-        (p) => p.id === item.product.id
-      );
+  customerName?: string;
 
-      if (!product) {
-        return {
-          success: false,
-          message: `المنتج ${item.product.name} غير موجود.`,
-        };
-      }
+  paymentMethod: PaymentMethod;
 
-      if (product.stock < item.quantity) {
-        return {
-          success: false,
-          message: `المخزون غير كافٍ للمنتج ${product.name}.`,
-        };
-      }
+  discount: number;
+
+  tax: number;
+
+  notes: string;
+
+ 
+}
+
+class CheckoutService {
+  async checkout(data: CheckoutData) {
+    const {
+      cart,
+      customerId,
+      customerName,
+      paymentMethod,
+      discount,
+      tax,
+      notes,
+       
+    } = data;
+
+    if (cart.length === 0) {
+      throw new Error("السلة فارغة");
     }
 
-    // تحديث المخزون
-    const updatedProducts = products.map((product) => {
-      const cartItem = request.items.find(
-        (item) => item.product.id === product.id
-      );
+   const invoiceItems = cart.map((item) => ({
+  productId: item.product.id,
 
-      if (!cartItem) {
-        return product;
-      }
+  productName: item.product.name,
 
-      return {
-        ...product,
-        stock: product.stock - cartItem.quantity,
-      };
-    });
+  quantity: item.quantity,
 
-    await saveProducts(updatedProducts);
+  unitPrice: item.product.sellingPrice,
 
-    const subtotal = request.items.reduce(
-      (sum, item) => sum + item.totalPrice,
-      0
-    );
+  costPrice: item.product.costPrice,
 
-    const discount = request.discount ?? 0;
+  total: item.subtotal,
+}));
 
-    const tax = request.tax ?? 0;
+   const invoice = await invoiceService.create(
+  {
+    customerId,
+    paymentMethod,
+    discount,
+    tax,
+    notes,
+    status: "completed",
+  },
+  invoiceItems,
+  customerName
+);
 
-    const total = subtotal - discount + tax;
-
-    const sale: Sale = {
-      id: uuid(),
-
-      invoiceNumber:
-        await generateInvoiceNumber(),
-
-      items: request.items,
-
-      subtotal,
-
-      discount,
-
-      tax,
-
-      total,
-
-      paymentMethod:
-        request.paymentMethod,
-
-      status: "completed",
-
-      customerId: request.customerId,
-
-      notes: request.notes,
-
-      createdAt:
-        new Date().toISOString(),
-
-      updatedAt:
-        new Date().toISOString(),
-    };
-
-    await addSale(sale);
-
-    return {
-      success: true,
-      sale,
-      message: "تمت عملية البيع بنجاح.",
-    };
-  } catch {
-    return {
-      success: false,
-      message: "حدث خطأ أثناء إتمام عملية البيع.",
-    };
+   
+    return invoice;
   }
 }
+
+export default new CheckoutService();

@@ -1,14 +1,7 @@
 import React, { useMemo, useState } from "react";
-import {
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
-
-import { PaymentMethod } from "../types/sale";
+import { Modal,Pressable,StyleSheet,Text,TextInput,View,} from "react-native";
+import type { PaymentMethod } from "../../../types/invoice";
+ 
 
 interface PaymentSheetProps {
   visible: boolean;
@@ -66,36 +59,38 @@ export function PaymentSheet({
           </Text>
 
           <View style={styles.methods}>
-            {(["cash", "card", "bankTransfer"] as const).map(
-              (method) => (
-                <Pressable
-                  key={method}
-                  style={[
-                    styles.methodButton,
-                    paymentMethod === method &&
-                      styles.methodButtonActive,
-                  ]}
-                  onPress={() =>
-                    setPaymentMethod(method)
-                  }
-                >
-                  <Text
-                    style={[
-                      styles.methodText,
-                      paymentMethod === method &&
-                        styles.methodTextActive,
-                    ]}
-                  >
-                    {method === "cash"
-                      ? "نقدًا"
-                      : method === "card"
-                      ? "بطاقة"
-                      : "تحويل"}
-                  </Text>
-                </Pressable>
-              )
-            )}
-          </View>
+  {(["cash", "card", "bank", "mixed"] as const).map(
+    (method) => (
+      <Pressable
+        key={method}
+        style={[
+          styles.methodButton,
+          paymentMethod === method &&
+            styles.methodButtonActive,
+        ]}
+        onPress={() =>
+          setPaymentMethod(method)
+        }
+      >
+        <Text
+          style={[
+            styles.methodText,
+            paymentMethod === method &&
+              styles.methodTextActive,
+          ]}
+        >
+          {method === "cash"
+            ? "نقدًا"
+            : method === "card"
+            ? "بطاقة"
+            : method === "bank"
+            ? "تحويل بنكي"
+            : "دفع مختلط"}
+        </Text>
+      </Pressable>
+    )
+  )}
+</View>
 
           {paymentMethod === "cash" && (
             <>

@@ -1,17 +1,11 @@
 import React, { useMemo, useCallback, useState } from "react";
 import { Alert } from "react-native";
 import { router } from "expo-router";
-
 import ProductCard from "../components/ProductCard";
 import useProducts from "../hooks/useProducts";
-
-import {
-  AppButton,
-  AppList,
-  AppPage,
-  AppSearch,
-} from "../../../components/ui";
-
+import {AppButton,AppList,AppPage,AppSearch,} from "../../../components/ui";
+import useCategories from "../../categories/hooks/useCategories";
+import useCategoryLookup from "../../categories/hooks/useCategoryLookup";
 export default function ProductsScreen() {
   const [search, setSearch] = useState("");
 
@@ -20,6 +14,14 @@ export default function ProductsScreen() {
     loading,
     deleteProduct,
   } = useProducts();
+
+  const {
+  getCategoryName,
+} = useCategoryLookup();
+
+  const {
+  categories,
+} = useCategories();
 
   const filteredProducts = useMemo(() => {
     const keyword = search.trim().toLowerCase();
@@ -99,10 +101,17 @@ export default function ProductsScreen() {
         }}
         renderItem={({ item }) => (
           <ProductCard
-            product={item}
-            onEdit={() => handleEdit(item.id)}
-            onDelete={() => handleDelete(item.id)}
-          />
+  product={item}
+  categoryName={getCategoryName(item.categoryId)}
+  onPress={() =>
+    router.push({
+      pathname: "/products/details/[id]",
+      params: { id: item.id },
+    })
+  }
+  onEdit={() => handleEdit(item.id)}
+  onDelete={() => handleDelete(item.id)}
+/>
         )}
       />
 

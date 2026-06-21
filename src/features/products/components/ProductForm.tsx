@@ -17,6 +17,10 @@ import {
 import { Spacing } from "../../../theme";
 
 import { ProductFormData } from "../types";
+import useCategories from "../../categories/hooks/useCategories";
+import { FormSelect } from "../../../components/forms";
+
+
 
 interface ProductFormProps {
   control: Control<ProductFormData>;
@@ -27,6 +31,13 @@ interface ProductFormProps {
 
   submitTitle?: string;
 }
+
+const { categories } = useCategories();
+
+const categoryOptions = categories.map((category) => ({
+  label: category.name,
+  value: category.id,
+}));
 
 export default function ProductForm({
   control,
@@ -60,6 +71,13 @@ export default function ProductForm({
             label="الباركود"
             placeholder="123456789"
           />
+          <FormSelect
+              control={control}
+              name="categoryId"
+              label="التصنيف"
+              placeholder="اختر التصنيف"
+              options={categoryOptions}
+            />
 
           <FormTextArea
             control={control}

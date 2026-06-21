@@ -11,12 +11,18 @@ interface Props {
 
   loading?: boolean;
 
+  cart: {
+    product: Product;
+    quantity: number;
+  }[];
+
   onSelect: (product: Product) => void;
 }
 
 export default function ProductGrid({
   products,
   loading = false,
+  cart,
   onSelect,
 }: Props) {
   return (
@@ -30,10 +36,20 @@ export default function ProductGrid({
         marginBottom: 16,
       }}
       renderItem={({ item }) => (
+
+
         <ProductTile
-          product={item}
-          onPress={() => onSelect(item)}
-        />
+  product={item}
+  cartQuantity={
+    cart.find(
+      (cartItem) =>
+        cartItem.product.id === item.id
+    )?.quantity ?? 0
+  }
+  onPress={() => onSelect(item)}
+/>
+
+
       )}
     />
   );

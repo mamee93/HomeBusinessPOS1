@@ -3,17 +3,22 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Product } from "../../../types/product";
 import { ProductFormData } from "../types";
 
+ 
+import storage from "../../../storage/storage";
+
+
 const STORAGE_KEY = "@homebusinesspos/products";
 
 class ProductService {
   async getAll(): Promise<Product[]> {
     try {
-      const data = await AsyncStorage.getItem(STORAGE_KEY);
+      const data =
+    await storage.get<string>(STORAGE_KEY);
 
       if (!data) {
         return [];
       }
-
+      console.log(JSON.parse(data));
       return JSON.parse(data);
     } catch (error) {
       console.error("Failed to load products:", error);
@@ -33,6 +38,24 @@ class ProductService {
     );
   }
 
+
+  private async generateSKU(): Promise<string> {
+  const products = await this.getAll();
+
+  return `SKU-${(products.length + 1)
+    .toString()
+    .padStart(6, "0")}`;
+}
+
+private async generateBarcode(): Promise<string> {
+  const products = await this.getAll();
+
+  return `629${(products.length + 1)
+    .toString()
+    .padStart(9, "0")}`;
+}
+
+
   async create(
     data: ProductFormData
   ): Promise<Product> {
@@ -41,18 +64,29 @@ class ProductService {
     const now = new Date().toISOString();
 
     const product: Product = {
-      id: Date.now().toString(),
-      createdAt: now,
-      updatedAt: now,
-      ...data,
-    };
+  id: Date.now().toString(),
+
+  createdAt: now,
+
+  updatedAt: now,
+
+  ...data,
+
+  sku:
+    data.sku?.trim() ||
+    (await this.generateSKU()),
+
+  barcode:
+    data.barcode?.trim() ||
+    (await this.generateBarcode()),
+};
 
     products.push(product);
 
-    await AsyncStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(products)
-    );
+    await storage.set(
+    STORAGE_KEY,
+    products
+);
 
     return product;
   }
@@ -110,7 +144,9 @@ class ProductService {
   }
 
   async clear(): Promise<void> {
-    await AsyncStorage.removeItem(STORAGE_KEY);
+    await storage.remove(
+    STORAGE_KEY
+);
   }
 
   async updateStock(

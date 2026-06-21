@@ -1,8 +1,8 @@
 import React, { ReactNode } from "react";
 import {
+  Pressable,
   StyleProp,
   StyleSheet,
-  View,
   ViewStyle,
 } from "react-native";
 
@@ -19,6 +19,7 @@ interface AppCardProps {
   outlined?: boolean;
   elevated?: boolean;
   padding?: keyof typeof Spacing;
+  onPress?: () => void;
 }
 
 export function AppCard({
@@ -27,38 +28,34 @@ export function AppCard({
   outlined = true,
   elevated = true,
   padding = "lg",
+  onPress,
 }: AppCardProps) {
   return (
-    <View
+    <Pressable
+      onPress={onPress}
       style={[
         styles.card,
-
         outlined && styles.outlined,
-
         elevated && Shadows.sm,
-
         {
           padding: Spacing[padding],
         },
-
         style,
       ]}
     >
       {children}
-    </View>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.surface,
-
     borderRadius: Radius.lg,
   },
 
   outlined: {
     borderWidth: 1,
-
     borderColor: Colors.border,
   },
 });

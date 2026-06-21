@@ -1,128 +1,153 @@
-import React, { useEffect, useState } from "react";
-import { Alert, StyleSheet, View } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import {AppButton, AppCard,AppLoading,AppScreen, AppText,} from "../../../components/ui";
+import React, { useCallback, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import { Alert, StyleSheet } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
+
+import {
+  AppBadge,
+  AppButton,
+  AppCard,
+  AppPage,
+  AppSection,
+  AppText,
+} from "../../../components/ui";
+
 import { Product } from "../../../types/product";
 import productService from "../services/productService";
-import { Theme } from "../../../theme";
-import ProductActions from "../components/ProductActions";
-export default function ProductDetailsScreen() {
-  const router = useRouter();
+import useCategories from "../../categories/hooks/useCategories";
+import { Spacing } from "../../../theme";
+import useCategoryLookup
+from "../../categories/hooks/useCategoryLookup";
 
+export default function ProductDetailsScreen() {
   const { id } = useLocalSearchParams<{
     id: string;
   }>();
 
-  const [loading, setLoading] = useState(true);
+  const {
+    getCategoryName,
+} = useCategoryLookup();
 
   const [product, setProduct] =
     useState<Product | null>(null);
 
-  useEffect(() => {
-    loadProduct();
-  }, []);
-
-  async function loadProduct() {
-    if (!id) return;
+  const loadProduct = useCallback(async () => {
+    if (!id) {
+      return;
+    }
 
     const data =
       await productService.getById(id);
 
-    setProduct(data ?? null);
+    if (!data) {
+      Alert.alert(
+        "خطأ",
+        "المنتج غير موجود"
+      );
 
-    setLoading(false);
-  }
+      router.back();
 
-  async function deleteCurrentProduct() {
-    if (!product) return;
+      return;
+    }
 
-    Alert.alert(
-      "حذف المنتج",
-      "هل تريد حذف المنتج؟",
-      [
-        {
-          text: "إلغاء",
-          style: "cancel",
-        },
-        {
-          text: "حذف",
-          style: "destructive",
-          onPress: async () => {
-            await productService.remove(product.id);
+    setProduct(data);
+  }, [id]);
 
-            router.back();
-          },
-        },
-      ]
-    );
-  }
-
-  if (loading) {
-    return <AppLoading />;
-  }
+  useFocusEffect(
+    useCallback(() => {
+      loadProduct();
+    }, [loadProduct])
+  );
 
   if (!product) {
-    return (
-      <AppScreen>
-        <AppText>المنتج غير موجود.</AppText>
-      </AppScreen>
-    );
+    return null;
   }
+
+ 
+
+  const profit =
+    product.sellingPrice -
+    product.costPrice;
 
   return (
-    <AppScreen>
-
+    <AppPage
+      title={product.name}
+      scrollable
+    >
       <AppCard>
+        <AppSection title="معلومات المنتج">
+          <AppText>
+            SKU: {product.sku}
+          </AppText>
 
-        <AppText variant="h2">
-          {product.name}
-        </AppText>
+          <AppText>
+            Barcode: {product.barcode || "-"}
+          </AppText>
 
-        <View style={styles.space} />
+          <AppText>
+              التصنيف:
+              {getCategoryName(product.categoryId)}
+          </AppText>
 
-        <AppText>
-          SKU : {product.sku}
-        </AppText>
-
-        <AppText>
-          Barcode : {product.barcode}
-        </AppText>
-
-        <AppText>
-          Cost : {product.costPrice}
-        </AppText>
-
-        <AppText>
-          Price : {product.sellingPrice}
-        </AppText>
-
-        <AppText>
-          Stock : {product.stock}
-        </AppText>
-
-        <AppText>
-          Unit : {product.unit}
-        </AppText>
-
+          {!!product.description && (
+            <AppText>
+              الوصف: {product.description}
+            </AppText>
+          )}
+        </AppSection>
       </AppCard>
 
-      <ProductActions
-  onEdit={() =>
-    router.push(`/products/edit/${product.id}`)
-  }
-  onDelete={deleteCurrentProduct}
-/>
+      <AppCard>
+        <AppSection title="الأسعار">
+          <AppText>
+            التكلفة:{" "}
+            {product.costPrice.toFixed(3)} ر.ع
+          </AppText>
 
-    </AppScreen>
+          <AppText>
+            البيع:{" "}
+            {product.sellingPrice.toFixed(3)} ر.ع
+          </AppText>
+
+          <AppText>
+            الربح:{" "}
+            {profit.toFixed(3)} ر.ع
+          </AppText>
+        </AppSection>
+      </AppCard>
+
+      <AppCard>
+        <AppSection title="المخزون">
+          <AppBadge
+            label={`${product.stock} ${product.unit}`}
+            variant={
+              product.stock <=
+              product.minStock
+                ? "warning"
+                : "success"
+            }
+          />
+        </AppSection>
+      </AppCard>
+
+      <AppButton
+        title="تعديل المنتج"
+        onPress={() =>
+          router.push({
+            pathname:
+              "/products/edit/[id]",
+            params: {
+              id: product.id,
+            },
+          })
+        }
+      />
+    </AppPage>
   );
 }
 
 const styles = StyleSheet.create({
-  buttons: {
-    marginTop: Theme.spacing.xl,
-  },
-
-  space: {
-    height: Theme.spacing.md,
+  section: {
+    marginBottom: Spacing.lg,
   },
 });
