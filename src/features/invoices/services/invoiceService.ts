@@ -1,171 +1,249 @@
-import React from "react";
-import { Alert, StyleSheet, View } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { AppButton, AppPage } from "../../../components/ui";
+import productService from "../../products/services/productService";
 
-import useProducts from "../../products/hooks/useProducts";
-import useCustomers from "../../customers/hooks/useCustomers";
+import {
+  Invoice,
+  InvoiceItem,
+} from "../../../types/invoice";
 
-import usePOS from "../hooks/usePOS";
+import { InvoiceFormData } from "../types";
 
-import ProductGrid from "../components/ProductGrid";
-import Cart from "../components/Cart";
-import CustomerSelector from "../components/CustomerSelector";
-import PaymentSelector from "../components/PaymentSelector";
-import CartSummary from "../components/CartSummary";
+const STORAGE_KEY = "@homebusinesspos/invoices";
 
-import invoiceService from "../../invoices/services/invoiceService";
-
-import { Theme } from "../../../theme";
-
-export default function POSScreen() {
-  const { products } = useProducts();
-
-  const { customers } = useCustomers();
-
-  const {
-    cart,
-
-    customerId,
-    customerName,
-
-    paymentMethod,
-
-    discount,
-    tax,
-
-    notes,
-
-    subtotal,
-    total,
-    itemsCount,
-
-    addProduct,
-
-    increase,
-    decrease,
-
-    removeProduct,
-
-    clear,
-
-    setCustomerId,
-    setCustomerName,
-    setPaymentMethod,
-  } = usePOS();
-
-  const handleCheckout = async () => {
+class InvoiceService {
+  async getAll(): Promise<Invoice[]> {
     try {
-      if (cart.length === 0) {
-        Alert.alert(
-          "تنبيه",
-          "السلة فارغة"
-        );
+      const data = await AsyncStorage.getItem(STORAGE_KEY);
 
-        return;
+      if (!data) {
+        return [];
       }
 
-      await invoiceService.create(
-        {
-          customerId,
-
-          discount,
-
-          tax,
-
-          paymentMethod,
-
-          status: "completed",
-
-          notes,
-        },
-
-        cart.map((item) => ({
-          productId: item.product.id,
-
-          productName: item.product.name,
-
-          quantity: item.quantity,
-
-          unitPrice:
-            item.product.sellingPrice,
-
-          costPrice:
-            item.product.costPrice,
-
-          total: item.subtotal,
-        })),
-
-        customerName
-      );
-
-      Alert.alert(
-        "نجاح",
-        "تم إنشاء الفاتورة بنجاح"
-      );
-
-      clear();
+      return JSON.parse(data);
     } catch (error) {
-      Alert.alert(
-        "خطأ",
-        error instanceof Error
-          ? error.message
-          : "حدث خطأ"
+      console.error("Failed to load invoices:", error);
+      return [];
+    }
+  }
+
+  async getById(id: string): Promise<Invoice | null> {
+    const invoices = await this.getAll();
+
+    return (
+      invoices.find((item) => item.id === id) ?? null
+    );
+  }
+
+  private async saveAll(
+    invoices: Invoice[]
+  ): Promise<void> {
+    await AsyncStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(invoices)
+    );
+  }
+
+  private async generateInvoiceNumber(): Promise<string> {
+    const invoices = await this.getAll();
+
+    return `INV-${(invoices.length + 1)
+      .toString()
+      .padStart(6, "0")}`;
+  }
+
+  private calculateSubtotal(
+    items: InvoiceItem[]
+  ): number {
+    return items.reduce(
+      (sum, item) => sum + item.total,
+      0
+    );
+  }
+
+  async create(
+    form: InvoiceFormData,
+    items: InvoiceItem[],
+    customerName?: string
+  ): Promise<Invoice> {
+    if (items.length === 0) {
+      throw new Error("السلة فارغة");
+    }
+
+    for (const item of items) {
+      const hasStock =
+        await productService.hasStock(
+          item.productId,
+          item.quantity
+        );
+
+      if (!hasStock) {
+        throw new Error(
+          `${item.productName} لا توجد كمية كافية`
+        );
+      }
+    }
+
+    const invoices = await this.getAll();
+
+    const subtotal =
+      this.calculateSubtotal(items);
+
+    const total =
+      subtotal -
+      form.discount +
+      form.tax;
+
+    const now =
+      new Date().toISOString();
+
+    const invoice: Invoice = {
+      id: Date.now().toString(),
+
+      createdAt: now,
+
+      updatedAt: now,
+
+      invoiceNumber:
+        await this.generateInvoiceNumber(),
+
+      customerId:
+        form.customerId,
+
+      customerName,
+
+      items,
+
+      subtotal,
+
+      discount:
+        form.discount,
+
+      tax:
+        form.tax,
+
+      total,
+
+      paymentMethod:
+        form.paymentMethod,
+
+      status:
+        form.status,
+
+      notes:
+        form.notes,
+    };
+
+    await productService.updateStocks(
+      items.map((item) => ({
+        productId:
+          item.productId,
+        quantity:
+          item.quantity,
+      }))
+    );
+
+    invoices.push(invoice);
+
+    await this.saveAll(invoices);
+
+    return invoice;
+  }
+
+  async update(
+    id: string,
+    data: Partial<Invoice>
+  ): Promise<Invoice> {
+    const invoices = await this.getAll();
+
+    const index = invoices.findIndex(
+      (item) => item.id === id
+    );
+
+    if (index === -1) {
+      throw new Error("Invoice not found");
+    }
+
+    invoices[index] = {
+      ...invoices[index],
+      ...data,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.saveAll(invoices);
+
+    return invoices[index];
+  }
+
+  async delete(id: string): Promise<void> {
+    const invoices = await this.getAll();
+
+    const invoice = invoices.find(
+      (item) => item.id === id
+    );
+
+    if (!invoice) {
+      throw new Error("Invoice not found");
+    }
+
+    if (invoice.status !== "cancelled") {
+      await productService.restoreStocks(
+        invoice.items.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+        }))
       );
     }
-  };
 
-  return (
-    <AppPage
-      title="نقطة البيع"
-      scrollable
-    >
-      <ProductGrid
-        products={products}
-        onSelect={addProduct}
-      />      <Cart
-        items={cart}
-        onIncrease={increase}
-        onDecrease={decrease}
-        onRemove={removeProduct}
-      />
+    await this.saveAll(
+      invoices.filter(
+        (item) => item.id !== id
+      )
+    );
+  }
 
-      <CustomerSelector
-        customers={customers}
-        selectedCustomerId={customerId}
-        onSelect={(customer) => {
-          setCustomerId(customer.id);
-          setCustomerName(customer.name);
-        }}
-      />
+  async cancel(
+    id: string
+  ): Promise<Invoice> {
+    const invoices = await this.getAll();
 
-      <PaymentSelector
-        value={paymentMethod}
-        onChange={setPaymentMethod}
-      />
+    const index = invoices.findIndex(
+      (item) => item.id === id
+    );
 
-      <CartSummary
-        itemsCount={itemsCount}
-        subtotal={subtotal}
-        discount={discount}
-        tax={tax}
-        total={total}
-      />
+    if (index === -1) {
+      throw new Error("Invoice not found");
+    }
 
-      <View style={styles.footer}>
-        <AppButton
-          title="إتمام البيع"
-          onPress={handleCheckout}
-        />
-      </View>
+    const invoice = invoices[index];
 
-    </AppPage>
-  );
+    if (invoice.status === "cancelled") {
+      return invoice;
+    }
+
+    await productService.restoreStocks(
+      invoice.items.map((item) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+      }))
+    );
+
+    invoices[index] = {
+      ...invoice,
+      status: "cancelled",
+      updatedAt: new Date().toISOString(),
+    };
+
+    await this.saveAll(invoices);
+
+    return invoices[index];
+  }
+
+  async clear(): Promise<void> {
+    await AsyncStorage.removeItem(
+      STORAGE_KEY
+    );
+  }
 }
 
-const styles = StyleSheet.create({
-  footer: {
-    marginTop: Theme.spacing.xl,
-    marginBottom: Theme.spacing["2xl"],
-  },
-});
+export default new InvoiceService();
