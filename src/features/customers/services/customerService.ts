@@ -1,24 +1,26 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { Customer } from "../../../types/customer";
 import { CustomerFormData } from "../types";
+import storage from "../../../storage/storage";
+
 
 const STORAGE_KEY = "@homebusinesspos/customers";
 
 class CustomerService {
   async getAll(): Promise<Customer[]> {
-    try {
-      const data = await AsyncStorage.getItem(STORAGE_KEY);
+ try {
+  const data =
+    await storage.get<Customer[]>(STORAGE_KEY);
 
-      if (!data) {
-        return [];
-      }
+  return data ?? [];
+} catch (error) {
+  console.error(
+    "Failed to load customers:",
+    error
+  );
 
-      return JSON.parse(data);
-    } catch (error) {
-      console.error("Failed to load customers:", error);
-      return [];
-    }
+  return [];
+}
   }
 
   async getById(id: string): Promise<Customer | null> {
@@ -49,10 +51,10 @@ class CustomerService {
 
     customers.push(customer);
 
-    await AsyncStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(customers)
-    );
+await storage.set(
+  STORAGE_KEY,
+  customers
+);
 
     return customer;
   }
@@ -77,10 +79,10 @@ class CustomerService {
       updatedAt: new Date().toISOString(),
     };
 
-    await AsyncStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(customers)
-    );
+await storage.set(
+  STORAGE_KEY,
+  customers
+);
 
     return customers[index];
   }
@@ -92,10 +94,10 @@ class CustomerService {
       (item) => item.id !== id
     );
 
-    await AsyncStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(filtered)
-    );
+   await storage.set(
+  STORAGE_KEY,
+  filtered
+);
   }
 }
 

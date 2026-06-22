@@ -1,20 +1,16 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
+ 
 import { Category } from "../../../types/category";
 import { CategoryFormData } from "../types";
-
+import storage from "../../../storage/storage";
 const STORAGE_KEY = "@homebusinesspos/categories";
 
 class CategoryService {
   async getAll(): Promise<Category[]> {
     try {
-      const json = await AsyncStorage.getItem(STORAGE_KEY);
+      const data =
+  await storage.get<Category[]>(STORAGE_KEY);
 
-      if (!json) {
-        return [];
-      }
-
-      return JSON.parse(json);
+return data ?? [];
     } catch (error) {
       console.error(error);
       return [];
@@ -52,10 +48,10 @@ class CategoryService {
 
     categories.push(category);
 
-    await AsyncStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(categories)
-    );
+    await storage.set(
+  STORAGE_KEY,
+  categories
+);
 
     return category;
   }
@@ -80,10 +76,10 @@ class CategoryService {
       updatedAt: new Date().toISOString(),
     };
 
-    await AsyncStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(categories)
-    );
+    await storage.set(
+  STORAGE_KEY,
+  categories
+);
 
     return categories[index];
   }
@@ -95,10 +91,10 @@ class CategoryService {
       (item) => item.id !== id
     );
 
-    await AsyncStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(filtered)
-    );
+  await storage.set(
+  STORAGE_KEY,
+  filtered
+);
   }
 }
 

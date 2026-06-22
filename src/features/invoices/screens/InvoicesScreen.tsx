@@ -1,40 +1,82 @@
 import React, { useMemo, useState } from "react";
 import { router } from "expo-router";
-
-import {
-  AppCard,
-  AppList,
-  AppPage,
-  AppSearch,
-  AppText,
-  AppBadge,
-} from "../../../components/ui";
-
+import {AppList,AppPage,AppSearch,} from "../../../components/ui";
 import useInvoices from "../hooks/useInvoices";
 import { Pressable } from "react-native";
+import InvoiceCard from "../components/InvoiceCard";
+import InvoiceStats from "../components/InvoiceStats";
+import InvoiceFilters from "../components/InvoiceFilters";
+import { InvoiceStatus } from "../../../types/invoice";
+import InvoiceDateFilter, {DateFilter,} from "../components/InvoiceDateFilter";
+
+
+
 export default function InvoicesScreen() {
   const [search, setSearch] = useState("");
 
+    const [
+  selectedDate,
+  setSelectedDate,
+] =
+  useState<DateFilter>("all");
+
+  
   const {
     invoices,
     loading,
   } = useInvoices();
 
-  const filteredInvoices = useMemo(() => {
-    const keyword = search.trim().toLowerCase();
+    const [
+  selectedStatus,
+  setSelectedStatus,
+] = useState<
+  InvoiceStatus | "all"
+>("all");
 
-    if (!keyword) {
-      return invoices;
-    }
+const filteredInvoices = useMemo(() => {
+  let filtered = invoices;
 
-    return invoices.filter((invoice) => {
-      return (
-        invoice.invoiceNumber
-          .toLowerCase()
-          .includes(keyword)
-      );
-    });
-  }, [invoices, search]);
+  if (selectedStatus !== "all") {
+    filtered = filtered.filter(
+      (invoice) =>
+        invoice.status === selectedStatus
+    );
+  }
+
+  const keyword = search.trim().toLowerCase();
+
+  if (!keyword) {
+    return filtered;
+  }
+
+  return filtered.filter((invoice) => {
+    return (
+      invoice.invoiceNumber
+        .toLowerCase()
+        .includes(keyword) ||
+
+      invoice.customerName
+        ?.toLowerCase()
+        .includes(keyword) ||
+
+      invoice.paymentMethod
+        .toLowerCase()
+        .includes(keyword) ||
+
+      invoice.status
+        .toLowerCase()
+        .includes(keyword)
+    );
+  });
+}, [
+  invoices,
+  search,
+  selectedStatus,
+]);
+<InvoiceFilters
+  selected={selectedStatus}
+  onSelect={setSelectedStatus}
+/>
 
   return (
     <AppPage
@@ -46,7 +88,9 @@ export default function InvoicesScreen() {
         onChangeText={setSearch}
         placeholder="بحث برقم الفاتورة"
       />
-
+      <InvoiceStats
+        invoices={filteredInvoices}
+      />
       <AppList
         data={filteredInvoices}
         loading={loading}
@@ -55,7 +99,8 @@ export default function InvoicesScreen() {
         emptyDescription="لم يتم إنشاء أي فاتورة بعد."
         renderItem={({ item }) => (
 
-          <Pressable
+<InvoiceCard
+  invoice={item}
   onPress={() =>
     router.push({
       pathname: "/invoices/[id]",
@@ -64,15 +109,7 @@ export default function InvoicesScreen() {
       },
     })
   }
->
-  <AppCard
-    style={{
-      marginBottom: 16,
-    }}
-  >
-    ...
-  </AppCard>
-</Pressable>
+/>
 
 
         )}

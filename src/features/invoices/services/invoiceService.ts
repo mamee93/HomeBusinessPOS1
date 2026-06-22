@@ -1,26 +1,19 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
+ 
 import productService from "../../products/services/productService";
-
-import {
-  Invoice,
-  InvoiceItem,
-} from "../../../types/invoice";
-
+import {Invoice, InvoiceItem,} from "../../../types/invoice";
 import { InvoiceFormData } from "../types";
+import storage from "../../../storage/storage";
+
 
 const STORAGE_KEY = "@homebusinesspos/invoices";
 
 class InvoiceService {
   async getAll(): Promise<Invoice[]> {
     try {
-      const data = await AsyncStorage.getItem(STORAGE_KEY);
+      const data = await storage.get<Invoice[]>(STORAGE_KEY);
 
-      if (!data) {
-        return [];
-      }
+      return data ?? [];
 
-      return JSON.parse(data);
     } catch (error) {
       console.error("Failed to load invoices:", error);
       return [];
@@ -38,10 +31,10 @@ class InvoiceService {
   private async saveAll(
     invoices: Invoice[]
   ): Promise<void> {
-    await AsyncStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(invoices)
-    );
+   await storage.set(
+  STORAGE_KEY,
+  invoices
+);
   }
 
   private async generateInvoiceNumber(): Promise<string> {
@@ -240,9 +233,9 @@ class InvoiceService {
   }
 
   async clear(): Promise<void> {
-    await AsyncStorage.removeItem(
-      STORAGE_KEY
-    );
+    await storage.remove(
+  STORAGE_KEY
+);
   }
 }
 

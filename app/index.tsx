@@ -1,3 +1,4 @@
-import ProductsScreen from "../src/features/products/screens/ProductsScreen";
+import DashboardScreen
+  from "@/features/dashboard/screens/DashboardScreen";
 
-export default ProductsScreen;
+export default DashboardScreen;

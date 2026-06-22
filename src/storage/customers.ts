@@ -1,9 +1,9 @@
 import { STORAGE_KEYS } from "../constants";
 import { Customer } from "../types/customer";
-import { getItem, setItem } from "./storage";
+import storage from "./storage";
 
 export async function getCustomers(): Promise<Customer[]> {
-  const customers = await getItem<Customer[]>(
+  const customers = await storage.get<Customer[]>(
     STORAGE_KEYS.CUSTOMERS
   );
 
@@ -13,7 +13,7 @@ export async function getCustomers(): Promise<Customer[]> {
 export async function saveCustomers(
   customers: Customer[]
 ): Promise<void> {
-  await setItem(STORAGE_KEYS.CUSTOMERS, customers);
+  await storage.set(STORAGE_KEYS.CUSTOMERS, customers);
 }
 
 export async function getCustomerById(

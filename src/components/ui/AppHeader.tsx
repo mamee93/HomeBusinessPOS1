@@ -26,7 +26,7 @@ export function AppHeader({
     <View style={styles.container}>
       <View style={styles.content}>
         <AppText
-          variant="title"
+          variant="h2"
           weight="700"
         >
           {title}

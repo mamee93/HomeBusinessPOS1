@@ -1,67 +1,76 @@
 import React from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import {
+  StyleSheet,
+  View,
+} from "react-native";
 
-import { AppCard, AppText } from "../../../components/ui";
-import { Theme } from "../../../theme";
+import { router } from "expo-router";
 
-interface Action {
-  title: string;
-  onPress: () => void;
-}
+import {
+  AppButton,
+  AppCard,
+  AppSection,
+} from "../../../components/ui";
 
-interface Props {
-  actions: Action[];
-}
+import { Spacing } from "../../../theme";
 
-export default function QuickActions({
-  actions,
-}: Props) {
+export default function QuickActions() {
   return (
     <AppCard>
-      <AppText variant="h4">
-        الإجراءات السريعة
-      </AppText>
+      <AppSection title="إجراءات سريعة">
 
-      <View style={styles.container}>
-        {actions.map((item) => (
-          <Pressable
-            key={item.title}
-            onPress={item.onPress}
-            style={styles.button}
-          >
-            <AppText style={styles.buttonText}>
-              {item.title}
-            </AppText>
-          </Pressable>
-        ))}
-      </View>
+        <View style={styles.row}>
+
+          <AppButton
+            title="🛒 بيع"
+            fullWidth={false}
+            onPress={() =>
+              router.push("/pos")
+            }
+          />
+
+          <AppButton
+            title="📦 منتج"
+            variant="outline"
+            fullWidth={false}
+            onPress={() =>
+              router.push("/products/create")
+            }
+          />
+
+        </View>
+
+        <View style={styles.row}>
+
+          <AppButton
+            title="👤 عميل"
+            variant="outline"
+            fullWidth={false}
+            onPress={() =>
+              router.push("/customers/create")
+            }
+          />
+
+          <AppButton
+            title="🧾 الفواتير"
+            variant="outline"
+            fullWidth={false}
+            onPress={() =>
+              router.push("/invoices")
+            }
+          />
+
+        </View>
+
+      </AppSection>
     </AppCard>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    marginTop: Theme.spacing.lg,
+  row: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Theme.spacing.md,
-  },
-
-  button: {
-  flex: 1,
-  minWidth: 120,
-  padding: Theme.spacing.lg,
-  borderRadius: Theme.radius.md,
-
-  backgroundColor: Theme.colors.surface,
-  borderWidth: 1,
-  borderColor: Theme.colors.primary,
-
-  alignItems: "center",
-  justifyContent: "center",
-},
-
-  buttonText: {
-    textAlign: "center",
+    justifyContent: "space-between",
+    marginBottom: Spacing.md,
   },
 });

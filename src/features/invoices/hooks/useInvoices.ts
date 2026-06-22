@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { Invoice, InvoiceItem } from "../../../types/invoice";
+import {
+  Invoice,
+  InvoiceItem,
+} from "../../../types/invoice";
+
 import { InvoiceFormData } from "../types";
 
 import invoiceService from "../services/invoiceService";
@@ -13,11 +17,15 @@ export default function useInvoices() {
     try {
       setLoading(true);
 
-      const data = await invoiceService.getAll();
+      const data =
+        await invoiceService.getAll();
 
       setInvoices(data);
     } catch (error) {
-      console.error("Failed to load invoices:", error);
+      console.error(
+        "Failed to load invoices:",
+        error
+      );
     } finally {
       setLoading(false);
     }
@@ -27,16 +35,23 @@ export default function useInvoices() {
     loadInvoices();
   }, [loadInvoices]);
 
+  const getInvoice = async (
+    id: string
+  ) => {
+    return await invoiceService.getById(id);
+  };
+
   const createInvoice = async (
     form: InvoiceFormData,
     items: InvoiceItem[],
     customerName?: string
   ) => {
-    const invoice = await invoiceService.create(
-      form,
-      items,
-      customerName
-    );
+    const invoice =
+      await invoiceService.create(
+        form,
+        items,
+        customerName
+      );
 
     await loadInvoices();
 
@@ -47,10 +62,11 @@ export default function useInvoices() {
     id: string,
     data: Partial<Invoice>
   ) => {
-    const invoice = await invoiceService.update(
-      id,
-      data
-    );
+    const invoice =
+      await invoiceService.update(
+        id,
+        data
+      );
 
     await loadInvoices();
 
@@ -68,20 +84,39 @@ export default function useInvoices() {
   const cancelInvoice = async (
     id: string
   ) => {
-    const invoice = await invoiceService.cancel(id);
+    const invoice =
+      await invoiceService.cancel(id);
 
     await loadInvoices();
 
     return invoice;
   };
 
+  const refreshInvoice = async (
+    id: string
+  ) => {
+    await loadInvoices();
+
+    return await invoiceService.getById(id);
+  };
+
   return {
     invoices,
+
     loading,
+
     refresh: loadInvoices,
+
+    getInvoice,
+
+    refreshInvoice,
+
     createInvoice,
+
     updateInvoice,
+
     deleteInvoice,
+
     cancelInvoice,
   };
 }

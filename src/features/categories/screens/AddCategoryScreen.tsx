@@ -2,18 +2,10 @@ import React from "react";
 import { ScrollView, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 import { useForm } from "react-hook-form";
-
-import {
-  AppButton,
-  AppScreen,
-} from "../../../components/ui";
-
+import { AppScreen } from "../../../components/ui";
 import CategoryForm from "../components/CategoryForm";
 import { CategoryFormData } from "../types";
-import { Category } from "../../../types/category";
-
 import categoryService from "../services/categoryService";
-import { generateId } from "../../../utils/id";
 import { Theme } from "../../../theme";
 
 export default function AddCategoryScreen() {
@@ -23,7 +15,6 @@ export default function AddCategoryScreen() {
     control,
     handleSubmit,
     formState: {
-      errors,
       isSubmitting,
     },
     reset,
@@ -38,23 +29,7 @@ export default function AddCategoryScreen() {
   async function onSubmit(data: CategoryFormData) {
     const now = new Date().toISOString();
 
-    const category: Category = {
-      id: generateId(),
-
-      name: data.name,
-
-      color: data.color,
-
-      icon: data.icon,
-
-      isActive: true,
-
-      createdAt: now,
-
-      updatedAt: now,
-    };
-
-    await categoryService.create(category);
+    await categoryService.create(data);
 
     reset();
 
@@ -67,16 +42,12 @@ export default function AddCategoryScreen() {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.content}
       >
-        <CategoryForm
-          control={control}
-          errors={errors}
-        />
 
-        <AppButton
-          title="حفظ التصنيف"
-          loading={isSubmitting}
-          onPress={handleSubmit(onSubmit)}
-        />
+         <CategoryForm
+  control={control}
+  loading={isSubmitting}
+  onSubmit={handleSubmit(onSubmit)}
+/>
       </ScrollView>
     </AppScreen>
   );

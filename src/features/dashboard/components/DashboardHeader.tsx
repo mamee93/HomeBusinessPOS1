@@ -1,28 +1,63 @@
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import {
+  StyleSheet,
+  View,
+} from "react-native";
 
-import { AppText } from "../../../components/ui";
-import { Theme } from "../../../theme";
+import {
+  AppCard,
+  AppText,
+} from "../../../components/ui";
+
+import {
+  Colors,
+  Spacing,
+} from "../../../theme";
 
 export default function DashboardHeader() {
-  return (
-    <View style={styles.container}>
-      <AppText variant="h2">
-        Dashboard
-      </AppText>
+  const now = new Date();
 
-      <AppText
-        variant="bodySmall"
-        color={Theme.colors.textSecondary}
-      >
-        Welcome back 👋
-      </AppText>
-    </View>
+  const hour = now.getHours();
+
+  const greeting =
+    hour < 12
+      ? "🌞 صباح الخير"
+      : hour < 18
+      ? "☀️ مساء الخير"
+      : "🌙 مساء الخير";
+
+  const date =
+    now.toLocaleDateString("ar", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
+  return (
+    <AppCard style={styles.card}>
+      <View>
+
+        <AppText
+          variant="h2"
+          weight="700"
+        >
+          {greeting}
+        </AppText>
+
+        <AppText
+          color={Colors.textSecondary}
+        >
+          {date}
+        </AppText>
+
+      </View>
+    </AppCard>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    marginBottom: Theme.spacing.xl,
+  card: {
+    marginBottom: Spacing.lg,
   },
 });

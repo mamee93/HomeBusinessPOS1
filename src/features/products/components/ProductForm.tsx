@@ -11,6 +11,7 @@ import {
 import {
   FormInput,
   FormNumberInput,
+  FormSelect,
   FormTextArea,
 } from "../../../components/forms";
 
@@ -18,9 +19,6 @@ import { Spacing } from "../../../theme";
 
 import { ProductFormData } from "../types";
 import useCategories from "../../categories/hooks/useCategories";
-import { FormSelect } from "../../../components/forms";
-
-
 
 interface ProductFormProps {
   control: Control<ProductFormData>;
@@ -32,25 +30,25 @@ interface ProductFormProps {
   submitTitle?: string;
 }
 
-const { categories } = useCategories();
-
-const categoryOptions = categories.map((category) => ({
-  label: category.name,
-  value: category.id,
-}));
-
 export default function ProductForm({
   control,
   loading = false,
   onSubmit,
   submitTitle = "حفظ المنتج",
 }: ProductFormProps) {
+  const { categories } = useCategories();
+
+  const categoryOptions = categories.map(
+    (category) => ({
+      label: category.name,
+      value: category.id,
+    })
+  );
+
   return (
     <View style={styles.container}>
-
       <AppCard>
         <AppSection title="معلومات المنتج">
-
           <FormInput
             control={control}
             name="name"
@@ -71,13 +69,14 @@ export default function ProductForm({
             label="الباركود"
             placeholder="123456789"
           />
+
           <FormSelect
-              control={control}
-              name="categoryId"
-              label="التصنيف"
-              placeholder="اختر التصنيف"
-              options={categoryOptions}
-            />
+            control={control}
+            name="categoryId"
+            label="التصنيف"
+            placeholder="اختر التصنيف"
+            options={categoryOptions}
+          />
 
           <FormTextArea
             control={control}
@@ -85,13 +84,11 @@ export default function ProductForm({
             label="الوصف"
             placeholder="وصف المنتج"
           />
-
         </AppSection>
       </AppCard>
 
       <AppCard>
         <AppSection title="الأسعار">
-
           <FormNumberInput
             control={control}
             name="costPrice"
@@ -105,13 +102,11 @@ export default function ProductForm({
             label="سعر البيع"
             decimal
           />
-
         </AppSection>
       </AppCard>
 
       <AppCard>
         <AppSection title="المخزون">
-
           <FormNumberInput
             control={control}
             name="stock"
@@ -130,7 +125,6 @@ export default function ProductForm({
             label="الوحدة"
             placeholder="قطعة"
           />
-
         </AppSection>
       </AppCard>
 

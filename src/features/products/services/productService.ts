@@ -1,30 +1,24 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
 import { Product } from "../../../types/product";
-import { ProductFormData } from "../types";
-
- 
+import { ProductFormData } from "../types"; 
 import storage from "../../../storage/storage";
-
 
 const STORAGE_KEY = "@homebusinesspos/products";
 
 class ProductService {
   async getAll(): Promise<Product[]> {
-    try {
-      const data =
-    await storage.get<string>(STORAGE_KEY);
+  try {
+    const data =
+      await storage.get<Product[]>(STORAGE_KEY);
 
-      if (!data) {
-        return [];
-      }
-      console.log(JSON.parse(data));
-      return JSON.parse(data);
-    } catch (error) {
-      console.error("Failed to load products:", error);
-      return [];
-    }
+    return data ?? [];
+  } catch (error) {
+    console.error(
+      "Failed to load products:",
+      error
+    );
+    return [];
   }
+}
 
   async getById(
     id: string
@@ -111,10 +105,10 @@ private async generateBarcode(): Promise<string> {
       updatedAt: new Date().toISOString(),
     };
 
-    await AsyncStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(products)
-    );
+    await storage.set(
+  STORAGE_KEY,
+  products
+);
 
     return products[index];
   }
@@ -128,19 +122,19 @@ private async generateBarcode(): Promise<string> {
       (item) => item.id !== id
     );
 
-    await AsyncStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(filtered)
-    );
+    await storage.set(
+  STORAGE_KEY,
+  filtered
+);
   }
 
   async replaceAll(
     products: Product[]
   ): Promise<void> {
-    await AsyncStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(products)
-    );
+ await storage.set(
+  STORAGE_KEY,
+  products
+);
   }
 
   async clear(): Promise<void> {
@@ -181,10 +175,10 @@ private async generateBarcode(): Promise<string> {
         new Date().toISOString(),
     };
 
-    await AsyncStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(products)
-    );
+   await storage.set(
+  STORAGE_KEY,
+  products
+);
 
     return products[index];
   }

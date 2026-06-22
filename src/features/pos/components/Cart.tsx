@@ -50,17 +50,21 @@ export default function Cart({
           keyExtractor={(item) => item.product.id}
           renderItem={({ item }) => (
             <CartItem
-              item={item}
-              onIncrease={() =>
-                onIncrease(item.product.id)
-              }
-              onDecrease={() =>
-                onDecrease(item.product.id)
-              }
-              onRemove={() =>
-                onRemove(item.product.id)
-              }
-            />
+                item={item}
+                canIncrease={
+                  item.quantity <
+                  item.product.stock
+                }
+                onIncrease={() =>
+                  onIncrease(item.product.id)
+                }
+                onDecrease={() =>
+                  onDecrease(item.product.id)
+                }
+                onRemove={() =>
+                  onRemove(item.product.id)
+                }
+              />
           )}
         />
       )}

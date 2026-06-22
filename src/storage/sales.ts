@@ -2,10 +2,10 @@ import { STORAGE_KEYS } from "../constants";
 
 import { Sale } from "../features/pos/types/sale";
 
-import { getItem, setItem } from "./storage";
+import storage from "./storage";
 
 export async function getSales(): Promise<Sale[]> {
-  const sales = await getItem<Sale[]>(
+  const sales = await storage.get<Sale[]>(
     STORAGE_KEYS.SALES
   );
 
@@ -15,7 +15,7 @@ export async function getSales(): Promise<Sale[]> {
 export async function saveSales(
   sales: Sale[]
 ): Promise<void> {
-  await setItem(STORAGE_KEYS.SALES, sales);
+  await storage.set(STORAGE_KEYS.SALES, sales);
 }
 
 export async function getSaleById(

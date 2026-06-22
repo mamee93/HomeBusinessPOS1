@@ -1,5 +1,5 @@
 import { STORAGE_KEYS } from "../constants";
-import { getItem, setItem } from "./storage";
+import storage from "./storage";
 
 export interface AppSettings {
   businessName: string;
@@ -12,11 +12,11 @@ export interface AppSettings {
 }
 
 export async function getSettings(): Promise<AppSettings | null> {
-  return getItem<AppSettings>(STORAGE_KEYS.SETTINGS);
+  return await storage.get<AppSettings>(STORAGE_KEYS.SETTINGS);
 }
 
 export async function saveSettings(
   settings: AppSettings
 ): Promise<void> {
-  await setItem(STORAGE_KEYS.SETTINGS, settings);
+  await storage.set(STORAGE_KEYS.SETTINGS, settings);
 }

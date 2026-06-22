@@ -2,23 +2,30 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 
 import { AppButton, AppCard, AppText } from "@/components/ui";
-import { Spacing } from "@/theme";
+import { Spacing, Colors} from "@/theme";
 
 import { CartItem as CartItemModel } from "../types";
-
+ 
 interface Props {
   item: CartItemModel;
+
+  canIncrease: boolean;
+
   onIncrease: () => void;
+
   onDecrease: () => void;
+
   onRemove: () => void;
 }
 
 export default function CartItem({
   item,
+  canIncrease,
   onIncrease,
   onDecrease,
   onRemove,
-}: Props) {
+}: Props)
+ {
   return (
     <AppCard style={styles.card}>
       <View style={styles.header}>
@@ -43,11 +50,32 @@ export default function CartItem({
             {item.quantity}
           </AppText>
 
-          <AppButton
-            title="+"
-            size="small"
-            onPress={onIncrease}
-          />
+<AppText
+  variant="caption"
+  color={
+    item.quantity >= item.product.stock
+      ? Colors.danger
+      : Colors.textSecondary
+}
+>
+  {item.quantity >= item.product.stock
+    ? "وصلت للحد الأقصى من المخزون"
+    : `المتبقي: ${
+        item.product.stock -
+        item.quantity
+      }`}
+</AppText>
+
+<AppButton
+  title="+"
+  size="small"
+  disabled={
+    item.quantity >=
+    item.product.stock
+  }
+  onPress={onIncrease}
+/>
+
         </View>
 
         <AppButton
